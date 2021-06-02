@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Static website hosting with S3 and CloudFront'
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: 'a-proper-bucket-name'
+
+Resources:
+  S3Bucket: 
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref BucketName
+      WebsiteConfiguration:
+        ErrorDocument: 'index.html'
+        IndexDocument: 'index.html'
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - '*'
+            Id: s3origin
+            MaxAge: 3600  
+
+  ReadPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicRead
+            Action: 's3:GetObject'
+            Effect: Allow
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+            Principal: '*'
+
+  CloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Ref S3Bucket
+
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        CustomErrorResponses:
+          - ErrorCode: 403 # not found
+            ResponseCode: 404
+            ResponsePagePath: '/index.html'
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          DefaultTTL: 3600 # in seconds
+          ForwardedValues:
+            Cookies:
+              Forward: none 
+            QueryString: false
+          MaxTTL: 86400 # in seconds
+          MinTTL: 60 # in seconds
+          TargetOriginId: !Sub 'S3-${S3Bucket}'
+          ViewerProtocolPolicy: 'allow-all'
+        DefaultRootObject: '/index.html'
+        Enabled: true
+        HttpVersion: http2
+        Origins:
+          - DomainName: !GetAtt 'S3Bucket.DomainName'
+            Id: !Sub 'S3-${S3Bucket}'
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+       
+  
+Outputs:
+  Bucket:
+    Description: 'S3 Bucket Name'
+    Value: !Ref S3Bucket
+  BucketUrl:
+    Description: 'S3 Bucket Url'
+    Value: !GetAtt 'S3Bucket.WebsiteURL'
+  DistributionId:
+    Description: 'CloudFront Distribution ID'
+    Value: !Ref CloudFrontDistribution
+  Domain:
+    Description: 'Cloudfront Domain'
+    Value: !GetAtt CloudFrontDistribution.DomainName

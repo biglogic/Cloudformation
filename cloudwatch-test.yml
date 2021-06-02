@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'CloudWatch Insight Rule Test'
+
+
+Resources:
+  APICloud:
+    Type: AWS::CloudWatch::InsightRule
+    Properties: 
+      RuleBody: 
+        Fn::Sub: |
+          {
+          	"Schema": {
+          		"Name": "CloudWatchLogRule",
+          		"Version": 1
+          	},
+          	"LogGroupNames": [
+          		"stg-client-fed-api"
+          	],
+          	"LogFormat": "CLF",
+          	"Fields": {
+          		"1": "program",
+          		"6": "request",
+          		"7": "StatusCode"
+          	},
+          	"Contribution": {
+          		"Keys": [
+          			"StatusCode"
+          		],
+          		"Filters": [{
+          				"Match": "program",
+          				"StartsWith": [
+          					"nginx"
+          				]
+          			},
+          			{
+          				"Match": "request",
+          				"StartsWith": [
+          					"GET",
+          					"POST",
+          					"PUT"
+          				]
+          			}, {
+          				"Match": "StatusCode",
+          				"StartsWith": [
+          					"20",
+          					"30",
+          					"40",
+          					"50"
+          				]
+          			}
+          		]
+          	},
+          	"AggregateOn": "Count"
+          }
+      RuleName: mytest
+      RuleState: ENABLED
