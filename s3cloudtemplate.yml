@@ -71,6 +71,13 @@ Resources:
           TargetOriginId: !Sub 'S3-${S3Bucket}'
           ViewerProtocolPolicy: 'allow-all'
         DefaultRootObject: '/index.html'
+        Logging:
+          IncludeCookies: 'true'
+          Bucket: !GetAtt 'S3Bucket.DomainName'
+
+        Aliases:
+        - mysite.example.com
+        - "*.yoursite.example.com"
         Enabled: true
         HttpVersion: http2
         Origins:

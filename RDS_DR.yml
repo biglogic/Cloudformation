@@ -1,0 +1,26 @@
+Resources:
+  RDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+       DBInstanceIdentifier: 'batabase1'
+       AllocatedStorage:  65
+       Port: 3306
+       Engine: mysql
+       EngineVersion: 8.0.23
+       BackupRetentionPeriod: 1
+       PubliclyAccessible: false
+       DeletionProtection: false
+       MultiAZ: true
+       DBInstanceClass: db.m6g.large 
+       MasterUsername: "admin"
+       MasterUserPassword: "password"
+       PreferredBackupWindow: "17:52-18:38"
+
+  # myReplciaDB:
+  #   Type: AWS::RDS::DBInstance
+  #   Properties:
+  #     # DBInstanceIdentifier: "replica-region-1"  #always create read-replica
+  #     DBSnapshotIdentifier: !Ref RDB
+  #     PubliclyAccessible: false
+  #     # SourceDBInstanceIdentifier: 
+  #     MultiAZ: true
