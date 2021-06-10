@@ -1,0 +1,9 @@
+Resources:
+  # Create Data DB
+  myReplciaDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: "replica-1"  #always create read-replica
+      PubliclyAccessible: false
+      SourceDBInstanceIdentifier: "arn:aws:rds:us-west-2:276264014537:db:database-1"
+      MultiAZ: true
